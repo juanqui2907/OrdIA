@@ -1,64 +1,92 @@
 import { store } from './store.js';
 
-const HABITS_KEY='habits_v2';
-const HABIT_CFG_KEY='habit_cfg_v2';
+const HABITS_KEY = 'habits_v2';
+const HABIT_CFG_KEY = 'habit_cfg_v2';
 
 function daysInMonth(ym){
   const [y,m]=ym.split('-').map(Number);
   return new Date(y,m,0).getDate();
 }
 
+// Une nombres de hábitos desde cfg.habits y lo que encuentre en data[month]
+function getHabitListFromStore(){
+  const cfg = store.get(HABIT_CFG_KEY, { month:new Date().toISOString().slice(0,7), habits:[] });
+  const data = store.get(HABITS_KEY, {});
+  const ym   = cfg.month;
+
+  const fromCfg = Array.isArray(cfg.habits) ? cfg.habits : [];
+
+  const fromData = new Set();
+  const days = data?.[ym] ? Object.keys(data[ym]) : [];
+  if (days.length){
+    // toma el primer día que tenga registros y extrae sus claves (nombres de hábitos)
+    const d = days[0];
+    Object.keys(data[ym][d] || {}).forEach(h => fromData.add(h));
+  }
+
+  const merged = Array.from(new Set([ ...fromCfg, ...fromData ])).filter(Boolean);
+  return { cfg, data, ym, habits: merged };
+}
+
 export function initProgress(){
-  const progressHabitSel = document.getElementById('progressHabitSel');
-  const progressChart = document.getElementById('progressChart');
-  const ctx = progressChart.getContext('2d');
-  const metaTotal = document.getElementById('metaTotal');
-  const metaPct = document.getElementById('metaPct');
+  const sel   = document.getElementById('progressHabitSel');
+  const chart = document.getElementById('progressChart');
+  const ctx   = chart.getContext('2d');
+  const metaTotal  = document.getElementById('metaTotal');
+  const metaPct    = document.getElementById('metaPct');
   const metaStreak = document.getElementById('metaStreak');
-  const monthPicker = document.getElementById('monthPicker');
+  const monthPicker = document.getElementById('monthPicker'); // vive en Hábitos (pero está en el DOM)
 
   function drawEmptyChart(msg){
-    const W = progressChart.width, H = progressChart.height;
+    const W = chart.width, H = chart.height;
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle = '#6b7280';
     ctx.font = '14px system-ui';
     ctx.textAlign = 'center';
     ctx.fillText(msg, W/2, H/2);
+    metaTotal.textContent = '0';
+    metaPct.textContent   = '0%';
+    metaStreak.textContent= '0';
   }
 
-  function fillProgressHabitOptions(){
-    const cfg = store.get(HABIT_CFG_KEY, {month:new Date().toISOString().slice(0,7), habits:[]});
-    progressHabitSel.innerHTML = '';
-    if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
+  function fillOptions(){
+    const { cfg, habits } = getHabitListFromStore();
+
+    sel.innerHTML = '';
+    if (!habits.length){
       const opt = document.createElement('option');
       opt.textContent = '— No hay hábitos —';
       opt.disabled = true; opt.selected = true;
-      progressHabitSel.appendChild(opt);
+      sel.appendChild(opt);
       drawEmptyChart('Añade un hábito en la pestaña “Hábitos”.');
-      metaTotal.textContent = '0'; metaPct.textContent = '0%'; metaStreak.textContent = '0';
       return;
     }
-    cfg.habits.forEach((h,i)=>{
+    habits.forEach((h,i)=>{
       const opt = document.createElement('option');
       opt.value = h; opt.textContent = h;
       if (i===0) opt.selected = true;
-      progressHabitSel.appendChild(opt);
+      sel.appendChild(opt);
     });
+
+    // Si cfg.habits estaba vacío pero detectamos hábitos en data, sincroniza cfg
+    if ((!cfg.habits || !cfg.habits.length) && habits.length){
+      cfg.habits = habits;
+      store.set(HABIT_CFG_KEY, cfg);
+    }
+
     drawProgress();
   }
 
   function drawProgress(){
-    const cfg = store.get(HABIT_CFG_KEY, {month:new Date().toISOString().slice(0,7), habits:[]});
-    const data = store.get(HABITS_KEY, {});
-    const ym = monthPicker.value || cfg.month;
+    const { cfg, data } = getHabitListFromStore();
+    const ym = monthPicker?.value || cfg.month;
 
-    // seguridad
-    if (!cfg.habits || cfg.habits.length === 0) {
-      fillProgressHabitOptions();
+    if (!sel.options.length || sel.options[0].disabled){
+      drawEmptyChart('Añade un hábito en la pestaña “Hábitos”.');
       return;
     }
 
-    const h = progressHabitSel.value || cfg.habits[0];
+    const h = sel.value || sel.options[0].value;
     const days = daysInMonth(ym);
     const series = [];
     let acc = 0, curStreak = 0;
@@ -70,11 +98,13 @@ export function initProgress(){
     }
 
     metaTotal.textContent = acc;
-    metaPct.textContent = Math.round(100 * acc / days) + '%';
-    metaStreak.textContent = curStreak;
+    metaPct.textContent   = Math.round(100 * acc / days) + '%';
+    metaStreak.textContent= curStreak;
 
-    const W = progressChart.width, H = progressChart.height;
+    const W = chart.width, H = chart.height;
     ctx.clearRect(0,0,W,H);
+
+    // ejes
     ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(40,20); ctx.lineTo(40,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
 
@@ -88,9 +118,8 @@ export function initProgress(){
       ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(W-10,y); ctx.stroke();
     }
 
-    const compStyles = getComputedStyle(document.documentElement);
-    const accent = compStyles.getPropertyValue('--accent').trim() || '#9d4edd';
-
+    // línea
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d4edd';
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -101,6 +130,7 @@ export function initProgress(){
     });
     ctx.stroke();
 
+    // puntos
     ctx.fillStyle = '#7a2bd7';
     series.forEach((v,idx)=>{
       const x = mapX(idx+1, days, W), y = mapY(v, maxY, H);
@@ -117,13 +147,17 @@ export function initProgress(){
     }
   }
 
-  progressHabitSel.addEventListener('change', drawProgress);
+  sel.addEventListener('change', drawProgress);
 
-  // reaccionar a cambios en la pestaña de hábitos
-  document.addEventListener('habits:changed', fillProgressHabitOptions);
-  document.addEventListener('habits:month', drawProgress);
-  document.addEventListener('habits:data', drawProgress);
+  // Refresca cuando cambian cosas en Hábitos
+  document.addEventListener('habits:changed', fillOptions);
+  document.addEventListener('habits:month',   ()=>{ fillOptions(); });
+  document.addEventListener('habits:data',    drawProgress);
 
-  // init
-  fillProgressHabitOptions();
+  // Refresca al activar la pestaña Progreso (por si abriste directo allí)
+  const progressBtn = document.querySelector('.tab-btn[data-tab="progress"]');
+  progressBtn?.addEventListener('click', fillOptions);
+
+  // Init
+  fillOptions();
 }
