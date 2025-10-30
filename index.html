@@ -193,10 +193,11 @@
           <button id="addHabitBtn" class="btn">Añadir hábito</button>
           <button id="clearMonthBtn" class="btn secondary">Limpiar mes</button>
 
-          <!-- Nuevo: selector y botón para eliminar hábito -->
-          <select id="removeHabitSel" style="padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px"></select>
+          <!-- Selector con placeholder y ancho -->
+          <select id="removeHabitSel" style="padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;min-width:220px">
+            <option value="" selected disabled>Selecciona un hábito…</option>
+          </select>
           <button id="removeHabitBtn" class="btn danger">Eliminar hábito</button>
-          <!-- Fin nuevo -->
 
           <span class="spacer"></span>
           <span class="pill">checkbox por día</span>
@@ -447,7 +448,6 @@ function renderHabitTable(){
       data[ym][day][h] = e.target.checked ? 1 : 0;
       store.set(HABITS_KEY,data);
       renderStats();
-      // colorear
       const td = e.target.closest('td');
       td.classList.toggle('cell-done', e.target.checked);
     })
@@ -472,12 +472,38 @@ function renderStats(){
     item.className='stat';
     item.innerHTML = `
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-        <span>${h}</span><span class="pill">${totals[h]}/${days}</span>
+        <span>${h}</span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span class="pill">${totals[h]}/${days}</span>
+          <button class="btn danger" data-del-habit="${h}" style="padding:4px 8px">🗑️</button>
+        </span>
       </div>
       <div class="bar"><i style="width:${pct}%"></i></div>
     `;
     habitStats.appendChild(item);
-  })
+  });
+
+  // borrar desde chip
+  habitStats.onclick = (ev)=>{
+    const btn = ev.target.closest('[data-del-habit]');
+    if(!btn) return;
+    const h = btn.getAttribute('data-del-habit');
+    if (!confirm(`¿Eliminar el hábito "${h}" de todos los meses?`)) return;
+
+    cfg.habits = cfg.habits.filter(x=>x!==h);
+    store.set(HABIT_CFG_KEY, cfg);
+
+    Object.keys(data).forEach(ym=>{
+      Object.keys(data[ym]||{}).forEach(d=>{
+        if (data[ym][d] && h in data[ym][d]) delete data[ym][d][h];
+      });
+    });
+    store.set(HABITS_KEY, data);
+
+    renderHabitTable();
+    fillRemoveHabitOptions();
+    fillProgressHabitOptions();
+  };
 }
 
 addHabitBtn.addEventListener('click', ()=>{
@@ -508,7 +534,7 @@ monthPicker.addEventListener('change', ()=>{
 ensureMonth(cfg.month);
 renderHabitTable();
 
-// ====== 3) Progreso acumulado (parche robusto) ======
+/* ====== Progreso ====== */
 const progressHabitSel = document.getElementById('progressHabitSel');
 const progressChart = document.getElementById('progressChart');
 const ctx = progressChart.getContext('2d');
@@ -516,7 +542,6 @@ const metaTotal = document.getElementById('metaTotal');
 const metaPct = document.getElementById('metaPct');
 const metaStreak = document.getElementById('metaStreak');
 
-// Asegura que siempre exista al menos un hábito
 (function ensureDefaultHabits(){
   if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
     cfg.habits = ['Hábito 1'];
@@ -546,43 +571,37 @@ function fillProgressHabitOptions(){
 }
 
 function fillRemoveHabitOptions(){
-  removeHabitSel.innerHTML = '';
-  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0){
+  const sel = removeHabitSel;
+  sel.innerHTML = '<option value="" disabled selected>Selecciona un hábito…</option>';
+  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
     const opt = document.createElement('option');
     opt.textContent = '— No hay hábitos —';
-    opt.disabled = true; opt.selected = true;
-    removeHabitSel.appendChild(opt);
+    opt.disabled = true;
+    sel.appendChild(opt);
     return;
   }
   cfg.habits.forEach(h=>{
     const opt = document.createElement('option');
     opt.value = h; opt.textContent = h;
-    removeHabitSel.appendChild(opt);
+    sel.appendChild(opt);
   });
 }
 
 removeHabitBtn.addEventListener('click', ()=>{
-  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) return;
   const h = removeHabitSel.value;
-  if (!h) return;
+  if (!h) { alert('Selecciona un hábito primero.'); return; }
+  if (!confirm(`¿Eliminar el hábito "${h}" de todos los meses?`)) return;
 
-  if (!confirm(`¿Eliminar el hábito "${h}" de todos los meses? Esta acción no se puede deshacer.`)) return;
-
-  // quitar del listado de hábitos
   cfg.habits = cfg.habits.filter(x => x !== h);
   store.set(HABIT_CFG_KEY, cfg);
 
-  // limpiar los datos de todos los meses
   Object.keys(data).forEach(ym=>{
-    Object.keys(data[ym]).forEach(d=>{
-      if (data[ym][d] && Object.prototype.hasOwnProperty.call(data[ym][d], h)){
-        delete data[ym][d][h];
-      }
+    Object.keys(data[ym]||{}).forEach(d=>{
+      if (data[ym][d] && h in data[ym][d]) delete data[ym][d][h];
     });
   });
   store.set(HABITS_KEY, data);
 
-  // refrescar UI dependiente
   renderHabitTable();
   fillRemoveHabitOptions();
   fillProgressHabitOptions();
@@ -624,13 +643,11 @@ function drawProgress(){
   metaPct.textContent = Math.round(100 * acc / days) + '%';
   metaStreak.textContent = curStreak;
 
-  // Dibujar ejes
   const W = progressChart.width, H = progressChart.height;
   ctx.clearRect(0,0,W,H);
   ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(40,20); ctx.lineTo(40,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
 
-  // Escala Y
   const maxY = Math.max(1, acc, Math.ceil(days*0.4));
   const steps = Math.max(3, Math.min(6, maxY));
   ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui'; ctx.textAlign = 'left';
@@ -641,7 +658,6 @@ function drawProgress(){
     ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(W-10,y); ctx.stroke();
   }
 
-  // Línea
   ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d4edd';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -652,7 +668,6 @@ function drawProgress(){
   });
   ctx.stroke();
 
-  // Puntos
   ctx.fillStyle = '#7a2bd7';
   series.forEach((v,idx)=>{
     const x = mapX(idx+1, days, W), y = mapY(v, maxY, H);
@@ -669,11 +684,12 @@ function drawProgress(){
   }
 }
 
-// Re-llenar opciones también cuando cambie el mes o la lista de hábitos
+// actualizar selects al cambiar de mes
 monthPicker.addEventListener('change', fillProgressHabitOptions);
 
-// Llamada inicial (tras renderHabitTable ya se ejecutó una vez, pero reforzamos)
+// inicializaciones
 fillProgressHabitOptions();
+fillRemoveHabitOptions();
 
 /* ====== 4) To-do ====== */
 const TODO_KEY='todos_v1';
