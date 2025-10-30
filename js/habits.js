@@ -23,8 +23,6 @@ export function initHabits(){
   const addHabitBtn = document.getElementById('addHabitBtn');
   const clearMonthBtn = document.getElementById('clearMonthBtn');
   const habitStats = document.getElementById('habitStats');
-  const removeHabitSel = document.getElementById('removeHabitSel');
-  const removeHabitBtn = document.getElementById('removeHabitBtn');
 
   const today = new Date();
   const initMonth = today.toISOString().slice(0,7);
@@ -59,6 +57,7 @@ export function initHabits(){
       habitStats.appendChild(item);
     });
 
+    // eliminar hábito desde el chip de basura
     habitStats.onclick = (ev)=>{
       const btn = ev.target.closest('[data-del-habit]');
       if(!btn) return;
@@ -76,26 +75,8 @@ export function initHabits(){
       store.set(HABITS_KEY, data);
 
       renderHabitTable();
-      fillRemoveHabitOptions();
       document.dispatchEvent(new CustomEvent('habits:changed'));
     };
-  }
-
-  function fillRemoveHabitOptions(){
-    const sel = removeHabitSel;
-    sel.innerHTML = '<option value="" disabled selected>Selecciona un hábito…</option>';
-    if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
-      const opt = document.createElement('option');
-      opt.textContent = '— No hay hábitos —';
-      opt.disabled = true;
-      sel.appendChild(opt);
-      return;
-    }
-    cfg.habits.forEach(h=>{
-      const opt = document.createElement('option');
-      opt.value = h; opt.textContent = h;
-      sel.appendChild(opt);
-    });
   }
 
   function renderHabitTable(){
@@ -140,7 +121,6 @@ export function initHabits(){
       })
     })
     renderStats();
-    fillRemoveHabitOptions();
     document.dispatchEvent(new CustomEvent('habits:changed'));
   }
 
@@ -152,7 +132,6 @@ export function initHabits(){
     data = ensureMonth(data, cfg, monthPicker.value);
     store.set(HABITS_KEY,data);
     renderHabitTable();
-    fillRemoveHabitOptions();
   });
 
   clearMonthBtn.addEventListener('click', ()=>{
@@ -171,7 +150,6 @@ export function initHabits(){
     store.set(HABIT_CFG_KEY,cfg);
     data = ensureMonth(data, cfg, cfg.month);
     renderHabitTable();
-    fillRemoveHabitOptions();
     document.dispatchEvent(new CustomEvent('habits:month'));
   });
 
