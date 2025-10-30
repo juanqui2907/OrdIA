@@ -192,6 +192,12 @@
           </label>
           <button id="addHabitBtn" class="btn">Añadir hábito</button>
           <button id="clearMonthBtn" class="btn secondary">Limpiar mes</button>
+
+          <!-- Nuevo: selector y botón para eliminar hábito -->
+          <select id="removeHabitSel" style="padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px"></select>
+          <button id="removeHabitBtn" class="btn danger">Eliminar hábito</button>
+          <!-- Fin nuevo -->
+
           <span class="spacer"></span>
           <span class="pill">checkbox por día</span>
         </div>
@@ -384,6 +390,8 @@ const habitTable = document.getElementById('habitTable');
 const addHabitBtn = document.getElementById('addHabitBtn');
 const clearMonthBtn = document.getElementById('clearMonthBtn');
 const habitStats = document.getElementById('habitStats');
+const removeHabitSel = document.getElementById('removeHabitSel');
+const removeHabitBtn = document.getElementById('removeHabitBtn');
 
 const today = new Date();
 const initMonth = today.toISOString().slice(0,7);
@@ -446,6 +454,7 @@ function renderHabitTable(){
   })
   renderStats();
   fillProgressHabitOptions();
+  fillRemoveHabitOptions();
 }
 
 function renderStats(){
@@ -478,6 +487,7 @@ addHabitBtn.addEventListener('click', ()=>{
   store.set(HABIT_CFG_KEY,cfg);
   ensureMonth(monthPicker.value);
   renderHabitTable();
+  fillRemoveHabitOptions();
 })
 clearMonthBtn.addEventListener('click', ()=>{
   const ym = monthPicker.value;
@@ -493,11 +503,12 @@ monthPicker.addEventListener('change', ()=>{
   cfg.month = monthPicker.value;
   store.set(HABIT_CFG_KEY,cfg);
   renderHabitTable();
+  fillRemoveHabitOptions();
 });
 ensureMonth(cfg.month);
 renderHabitTable();
 
-/* ====== 3) Progreso acumulado ====== */
+// ====== 3) Progreso acumulado (parche robusto) ======
 const progressHabitSel = document.getElementById('progressHabitSel');
 const progressChart = document.getElementById('progressChart');
 const ctx = progressChart.getContext('2d');
@@ -505,60 +516,133 @@ const metaTotal = document.getElementById('metaTotal');
 const metaPct = document.getElementById('metaPct');
 const metaStreak = document.getElementById('metaStreak');
 
+// Asegura que siempre exista al menos un hábito
+(function ensureDefaultHabits(){
+  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
+    cfg.habits = ['Hábito 1'];
+    store.set(HABIT_CFG_KEY, cfg);
+    ensureMonth(monthPicker.value);
+  }
+})();
+
 function fillProgressHabitOptions(){
-  progressHabitSel.innerHTML='';
+  progressHabitSel.innerHTML = '';
+  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) {
+    const opt = document.createElement('option');
+    opt.textContent = '— No hay hábitos —';
+    opt.disabled = true; opt.selected = true;
+    progressHabitSel.appendChild(opt);
+    drawEmptyChart('Añade un hábito en la pestaña “Hábitos”.');
+    metaTotal.textContent = '0'; metaPct.textContent = '0%'; metaStreak.textContent = '0';
+    return;
+  }
   cfg.habits.forEach((h,i)=>{
-    const opt=document.createElement('option');
-    opt.value=h; opt.textContent=h;
-    if(i===0) opt.selected=true;
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h;
+    if (i===0) opt.selected = true;
     progressHabitSel.appendChild(opt);
   });
   drawProgress();
 }
+
+function fillRemoveHabitOptions(){
+  removeHabitSel.innerHTML = '';
+  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0){
+    const opt = document.createElement('option');
+    opt.textContent = '— No hay hábitos —';
+    opt.disabled = true; opt.selected = true;
+    removeHabitSel.appendChild(opt);
+    return;
+  }
+  cfg.habits.forEach(h=>{
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h;
+    removeHabitSel.appendChild(opt);
+  });
+}
+
+removeHabitBtn.addEventListener('click', ()=>{
+  if (!Array.isArray(cfg.habits) || cfg.habits.length === 0) return;
+  const h = removeHabitSel.value;
+  if (!h) return;
+
+  if (!confirm(`¿Eliminar el hábito "${h}" de todos los meses? Esta acción no se puede deshacer.`)) return;
+
+  // quitar del listado de hábitos
+  cfg.habits = cfg.habits.filter(x => x !== h);
+  store.set(HABIT_CFG_KEY, cfg);
+
+  // limpiar los datos de todos los meses
+  Object.keys(data).forEach(ym=>{
+    Object.keys(data[ym]).forEach(d=>{
+      if (data[ym][d] && Object.prototype.hasOwnProperty.call(data[ym][d], h)){
+        delete data[ym][d][h];
+      }
+    });
+  });
+  store.set(HABITS_KEY, data);
+
+  // refrescar UI dependiente
+  renderHabitTable();
+  fillRemoveHabitOptions();
+  fillProgressHabitOptions();
+});
+
 progressHabitSel.addEventListener('change', drawProgress);
 
-function drawProgress(){
-  // datos
-  const ym = monthPicker.value;
-  ensureMonth(ym);
-  const days = daysInMonth(ym);
-  const h = progressHabitSel.value || cfg.habits[0];
-  const series = [];
-  let acc=0, streak=0, bestStreak=0, curStreak=0;
-  for(let d=1; d<=days; d++){
-    const v = data[ym][d][h]||0;
-    acc += v;
-    series.push(acc);
-    if(v){ curStreak++; bestStreak=Math.max(bestStreak,curStreak); }
-    else { curStreak=0; }
-  }
-  // metas
-  metaTotal.textContent = acc;
-  metaPct.textContent = Math.round(100*acc/days) + '%';
-  metaStreak.textContent = curStreak;
-
-  // gráfico
+function drawEmptyChart(msg){
   const W = progressChart.width, H = progressChart.height;
   ctx.clearRect(0,0,W,H);
-  // ejes
-  ctx.strokeStyle = '#e5e7eb';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(40,20); ctx.lineTo(40,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '14px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(msg, W/2, H/2);
+}
 
-  // etiquetas Y
+function drawProgress(){
+  const ym = monthPicker.value;
+  ensureMonth(ym);
+
+  if (!progressHabitSel.options.length || !cfg.habits.length) {
+    drawEmptyChart('Añade un hábito en la pestaña “Hábitos”.');
+    metaTotal.textContent = '0'; metaPct.textContent = '0%'; metaStreak.textContent = '0';
+    return;
+  }
+
+  const h = progressHabitSel.value || cfg.habits[0];
+  const days = daysInMonth(ym);
+  const series = [];
+  let acc = 0, curStreak = 0;
+
+  for (let d=1; d<=days; d++){
+    const v = (data[ym]?.[d]?.[h]) ? 1 : 0;
+    acc += v; series.push(acc);
+    curStreak = v ? curStreak+1 : 0;
+  }
+
+  metaTotal.textContent = acc;
+  metaPct.textContent = Math.round(100 * acc / days) + '%';
+  metaStreak.textContent = curStreak;
+
+  // Dibujar ejes
+  const W = progressChart.width, H = progressChart.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(40,20); ctx.lineTo(40,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
+
+  // Escala Y
   const maxY = Math.max(1, acc, Math.ceil(days*0.4));
   const steps = Math.max(3, Math.min(6, maxY));
-  ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui';
+  ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui'; ctx.textAlign = 'left';
   for(let i=0;i<=steps;i++){
     const yVal = Math.round(maxY*i/steps);
     const y = mapY(yVal, maxY, H);
-    ctx.fillText(yVal.toString(), 8, y+4);
+    ctx.fillText(String(yVal), 8, y+4);
     ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(W-10,y); ctx.stroke();
   }
 
-  // línea
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+  // Línea
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d4edd';
   ctx.lineWidth = 2;
   ctx.beginPath();
   series.forEach((v,idx)=>{
@@ -568,22 +652,28 @@ function drawProgress(){
   });
   ctx.stroke();
 
-  // puntos
+  // Puntos
   ctx.fillStyle = '#7a2bd7';
   series.forEach((v,idx)=>{
     const x = mapX(idx+1, days, W), y = mapY(v, maxY, H);
     ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill();
   });
 
-  function mapX(day, totalDays, width){
+  function mapX(day,totalDays,width){
     const left=40, right=width-10;
     return left + (right-left)*(day-1)/(totalDays-1 || 1);
   }
-  function mapY(val, maxVal, height){
+  function mapY(val,maxVal,height){
     const top=20, bottom=height-30;
     return bottom - (bottom-top)*(val/(maxVal||1));
   }
 }
+
+// Re-llenar opciones también cuando cambie el mes o la lista de hábitos
+monthPicker.addEventListener('change', fillProgressHabitOptions);
+
+// Llamada inicial (tras renderHabitTable ya se ejecutó una vez, pero reforzamos)
+fillProgressHabitOptions();
 
 /* ====== 4) To-do ====== */
 const TODO_KEY='todos_v1';
