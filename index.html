@@ -99,7 +99,6 @@
         </div>
       </div>
     </section>
-
     <!-- PESTAÑA 4: TAREAS -->
     <section id="tab-todo" class="tab">
       <div class="panel">
@@ -114,9 +113,19 @@
           <button id="clearAll" class="btn danger">Borrar todo</button>
         </div>
       </div>
-    </section>
-  </div>
+      <!-- NUEVO: Materias tipo Notion -->
+      <div class="panel" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <h2 style="margin:0">Mis materias</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="newSubjectName" type="text" placeholder="Nombre de la materia" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px;min-width:220px">
+            <button id="addSubjectBtn" class="btn">Añadir materia</button>
+          </div>
+        </div>
 
+        <div id="subjectsGrid" class="subjects-grid" style="margin-top:12px"></div>
+      </div>
+    </section>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
