@@ -153,3 +153,25 @@ a{color:var(--accent-600);text-decoration:none}
 
 .subject-progress{height:8px;background:#eee;border-radius:999px;overflow:hidden}
 .subject-progress > i{display:block;height:100%;background:var(--accent)}
+
+/* Pomodoro */
+.pom-row{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media (max-width:900px){ .pom-row{grid-template-columns:1fr} }
+.mode-switch{display:flex;gap:8px;flex-wrap:wrap}
+.pom-timer{
+  position:relative; width:280px; height:280px; margin:12px auto;
+  display:flex; align-items:center; justify-content:center;
+}
+.pom-time{
+  position:absolute; font-size:54px; font-weight:800; color:#111; font-variant-numeric:tabular-nums;
+}
+.pom-phase{
+  position:absolute; bottom:22px; font-size:14px; color:var(--muted)
+}
+.pom-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.pom-right .pom-grid{
+  display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.pom-right input[type="number"]{
+  width:100%; margin-top:6px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;
+}

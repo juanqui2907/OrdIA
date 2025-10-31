@@ -15,6 +15,7 @@
         <button class="tab-btn" data-tab="habits">Hábitos</button>
         <button class="tab-btn" data-tab="progress">Progreso</button>
         <button class="tab-btn" data-tab="todo">Do It</button>
+        <button class="tab-btn" data-tab="pomodoro">Pomodoro</button>
       </nav>
     </header>
 
@@ -124,6 +125,65 @@
         </div>
 
         <div id="subjectsGrid" class="subjects-grid" style="margin-top:12px"></div>
+      </div>
+    </section>
+    <!-- NUEVA PESTAÑA: POMODORO -->
+    <section id="tab-pomodoro" class="tab">
+      <div class="panel">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
+          <h2 style="margin:0">Pomodoro</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <label style="display:flex;gap:6px;align-items:center">
+              <input id="autoNext" type="checkbox"> Autoiniciar siguiente fase
+            </label>
+          </div>
+        </div>
+
+        <div class="pom-row">
+          <div class="pom-left">
+            <div class="mode-switch">
+              <button class="btn pom-mode" data-mode="work" aria-pressed="true">Trabajo</button>
+              <button class="btn secondary pom-mode" data-mode="short">Descanso corto</button>
+              <button class="btn secondary pom-mode" data-mode="long">Descanso largo</button>
+            </div>
+
+            <div class="pom-timer">
+              <canvas id="pomCanvas" width="280" height="280"></canvas>
+              <div class="pom-time" id="pomTime">25:00</div>
+              <div class="pom-phase" id="pomPhase">Trabajo</div>
+            </div>
+
+            <div class="pom-controls">
+              <button id="pomStart"  class="btn">Iniciar</button>
+              <button id="pomPause"  class="btn secondary" disabled>Pausar</button>
+              <button id="pomResume" class="btn" disabled>Reanudar</button>
+              <button id="pomReset"  class="btn ghost" disabled>Reiniciar</button>
+              <button id="pomSkip"   class="btn ghost" disabled>Saltar</button>
+            </div>
+          </div>
+
+          <div class="pom-right">
+            <h3 style="margin:0 0 6px">Duraciones</h3>
+            <div class="pom-grid">
+              <label>Trabajo
+                <input id="durWork"  type="number" min="1" step="1" value="25"> min
+              </label>
+              <label>Descanso corto
+                <input id="durShort" type="number" min="1" step="1" value="5"> min
+              </label>
+              <label>Descanso largo
+                <input id="durLong"  type="number" min="1" step="1" value="15"> min
+              </label>
+              <label>Cada cuántos pomodoros hacer descanso largo
+                <input id="longEvery" type="number" min="2" step="1" value="4">
+              </label>
+            </div>
+
+            <p class="status" style="margin-top:8px">
+              Consejo: los cambios se guardan y el temporizador sobrevive a recargas.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   <script type="module" src="js/main.js"></script>

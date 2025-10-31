@@ -3,7 +3,8 @@ import { initTimers } from './timers.js';
 import { initHabits } from './habits.js';
 import { initProgress } from './progress.js';
 import { initTodo } from './todo.js';
-import { initSubjects } from './subjects.js'; // NUEVO
+import { initSubjects } from './subjects.js';
+import { initPomodoro } from './pomodoro.js'; // nuevo
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
@@ -11,5 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initHabits();
   initProgress();
   initTodo();
-  initSubjects(); // NUEVO
+  initSubjects();
+  initPomodoro(); // nuevo
 });
