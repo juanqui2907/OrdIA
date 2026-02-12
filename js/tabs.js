@@ -5,6 +5,7 @@ export function initTabs(){
     habits: document.getElementById('tab-habits'),
     progress: document.getElementById('tab-progress'),
     todo: document.getElementById('tab-todo'),
+    calendar: document.getElementById('tab-calendar'),
     pomodoro: document.getElementById('tab-pomodoro'), // 👈 nuevo
   };
   tabButtons.forEach(btn=>{
