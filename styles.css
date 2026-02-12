@@ -175,3 +175,38 @@ a{color:var(--accent-600);text-decoration:none}
 .pom-right input[type="number"]{
   width:100%; margin-top:6px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;
 }
+
+/* Calendario */
+.calendar-panel .cal-header{
+  display:flex; gap:8px; align-items:center; justify-content:flex-start; margin-bottom:12px;
+}
+.cal-title{font-weight:700; font-size:16px; margin-inline:8px; flex:1}
+.cal-main{display:flex; gap:12px; align-items:flex-start}
+.cal-grid{flex:1; min-width:360px; background:white; border-radius:12px; padding:12px; border:1px solid #eee}
+.cal-side{width:320px; background:white; border-radius:12px; padding:12px; border:1px solid #eee}
+.cal-weekdays{display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:8px}
+.cal-wd{font-size:13px; color:var(--muted); text-align:center}
+.cal-days{display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+.cal-day{
+  background:transparent; border:none; padding:8px; border-radius:8px; text-align:left; cursor:pointer;
+  min-height:64px; position:relative;
+}
+.cal-day:hover{background:#f8f8ff}
+.cal-outside{opacity:.45}
+.cal-day-top{display:flex; justify-content:space-between; align-items:center}
+.cal-day-num{font-weight:700}
+.cal-badge{background:var(--accent); color:white; padding:2px 6px; border-radius:999px; font-size:12px}
+.cal-today{box-shadow:inset 0 0 0 2px #e6f0ff; border-radius:8px}
+.cal-selected-day{outline:3px solid rgba(157,78,221,.12); border-radius:8px}
+.cal-selected{font-weight:600}
+.cal-events{display:flex; flex-direction:column; gap:8px; margin-top:8px}
+.cal-event{display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:8px; background:#fafafa; border:1px solid #f0f0f0}
+.cal-event-left{display:flex; gap:8px; align-items:center}
+.cal-event-time{font-size:12px; color:var(--muted); width:56px}
+.cal-event-title{font-weight:600}
+.cal-noevents{color:var(--muted); font-size:13px}
+.cal-add-form{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+.cal-add-form input[type="text"], .cal-add-form input[type="time"]{
+  padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px
+}
+

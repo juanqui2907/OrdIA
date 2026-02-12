@@ -15,6 +15,7 @@
         <button class="tab-btn" data-tab="habits">Hábitos</button>
         <button class="tab-btn" data-tab="progress">Progreso</button>
         <button class="tab-btn" data-tab="todo">Do It</button>
+        <button class="tab-btn" data-tab="calendar">Calendario</button>
         <button class="tab-btn" data-tab="pomodoro">Pomodoro</button>
       </nav>
     </header>
@@ -49,6 +50,36 @@
 
       <h3 style="margin:20px 0 8px">Mis temporizadores</h3>
       <div id="timers" class="timers"></div>
+    </section>
+    <!-- PESTAÑA: CALENDARIO -->
+    <section id="tab-calendar" class="tab">
+      <div class="panel calendar-panel">
+        <div class="cal-header">
+          <button id="calPrev" class="btn ghost">&lsaquo;</button>
+          <div class="cal-title" id="calTitle">Mes Año</div>
+          <button id="calNext" class="btn ghost">&rsaquo;</button>
+          <button id="calToday" class="btn secondary">Hoy</button>
+        </div>
+
+        <div class="cal-main">
+          <div class="cal-grid" id="calGrid" aria-hidden="false"></div>
+
+          <aside class="cal-side">
+            <div id="calSelected" class="cal-selected">Selecciona una fecha</div>
+
+            <div class="cal-events" id="calEvents"></div>
+
+            <form id="calAddForm" class="cal-add-form" autocomplete="off">
+              <input id="calTitleInput" type="text" placeholder="Título del evento" required />
+              <input id="calTimeInput" type="time" />
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn" type="submit">Añadir</button>
+                <button id="calClearDay" class="btn secondary" type="button">Borrar día</button>
+              </div>
+            </form>
+          </aside>
+        </div>
+      </div>
     </section>
 
     <!-- PESTAÑA 2: HÁBITOS -->

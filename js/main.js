@@ -5,6 +5,7 @@ import { initProgress } from './progress.js';
 import { initTodo } from './todo.js';
 import { initSubjects } from './subjects.js';
 import { initPomodoro } from './pomodoro.js'; // nuevo
+import { initCalendar } from './calendar.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
@@ -14,4 +15,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initTodo();
   initSubjects();
   initPomodoro(); // nuevo
+  initCalendar();
 });
