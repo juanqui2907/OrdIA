@@ -20,6 +20,13 @@ function monthName(year, month){
   return new Date(year, month, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' });
 }
 
+function parseIso(iso){
+  // Parse YYYY-MM-DD into a local Date (avoid UTC shift)
+  const parts = String(iso).split('-').map(Number);
+  if(parts.length !== 3) return new Date(iso);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
 // Builds array of weeks (6) each with 7 day objects {date:Date,inMonth,iso}
 function monthMatrix(year, month, weekStartsMonday=true){
   const first = new Date(year, month, 1);
@@ -70,21 +77,14 @@ export function initCalendar(){
     const month = state.date.getMonth();
     title.textContent = monthName(year, month);
 
-    // weekday headers (Monday..Sunday)
-    const weekdays = [];
-    // choose Monday as start (Spanish UX)
-    const base = new Date(1970,0,5); // Monday Jan 5 1970
-    for(let i=0;i<7;i++){
-      weekdays.push(base.getDate() + i);
-    }
     // build grid HTML
     const weeks = monthMatrix(year, month, true);
     let html = '<div class="cal-weekdays">';
     const weekdayNames = [];
     // localized short names, starting Monday
-    const dt = new Date(2020,5,1); // just a date
-    for(let i=1;i<=7;i++){
-      const d = new Date(2020,5,1 + (i % 7));
+    const baseMonday = new Date(2023,0,2); // Monday Jan 2 2023 (a known Monday)
+    for(let i=0;i<7;i++){
+      const d = new Date(baseMonday.getFullYear(), baseMonday.getMonth(), baseMonday.getDate() + i);
       weekdayNames.push(d.toLocaleDateString(undefined, { weekday: 'short' }));
     }
     for(const w of weekdayNames){
@@ -121,7 +121,7 @@ export function initCalendar(){
   }
 
   function renderSelected(){
-    selectedLabel.textContent = new Date(state.selected).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    selectedLabel.textContent = parseIso(state.selected).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
     const list = state.events[state.selected] || [];
     if(list.length === 0){
       eventsEl.innerHTML = `<div class="cal-noevents">No hay eventos</div>`;
