@@ -7,8 +7,10 @@ import { initSubjects } from './subjects.js';
 import { initPomodoro } from './pomodoro.js';
 import { initCalendar } from './calendar.js';
 import { initToday } from './today.js';
+import { initDarkMode } from './darkmode.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
   initTabs();
   initToday();
   initTimers();

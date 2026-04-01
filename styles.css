@@ -496,3 +496,174 @@ a{color:var(--accent-600);text-decoration:none}
   color: var(--ok);
   font-weight: 500;
 }
+
+/* ============================================================
+   MODO OSCURO
+   ============================================================ */
+[data-theme="dark"] {
+  --bg: #0f0f13;
+  --fg: #e8e8f0;
+  --muted: #9090a8;
+  --accent: #b97cf8;
+  --accent-600: #9d4edd;
+  --accent-100: #2a1a40;
+  --card: #18181f;
+  --danger: #f43f5e;
+  --ok: #34d399;
+}
+[data-theme="dark"] body        { background: var(--bg); color: var(--fg); }
+[data-theme="dark"] nav         { background: #18181f; border-color: #2a2a35; }
+[data-theme="dark"] .panel      { background: var(--card); border-color: #2a2a35; }
+[data-theme="dark"] .btn.secondary { background: #2a2a35; color: var(--fg); }
+[data-theme="dark"] .btn.ghost  { color: var(--muted); }
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+  background: #1e1e28; border-color: #2a2a35; color: var(--fg);
+}
+[data-theme="dark"] .habit-table { background: #18181f; }
+[data-theme="dark"] .habit-table th { background: #1e1e28; color: var(--fg); }
+[data-theme="dark"] .habit-table th, [data-theme="dark"] .habit-table td { border-color: #2a2a35; }
+[data-theme="dark"] .timer-card { background: #1e1e28; border-color: #2a2a35; }
+[data-theme="dark"] canvas      { background: #1e1e28; border-color: #2a2a35; }
+[data-theme="dark"] .todo-item  { background: #1e1e28; border-color: #2a2a35; }
+[data-theme="dark"] .today-hero { box-shadow: 0 8px 32px rgba(185,124,248,.2); }
+[data-theme="dark"] .today-card { background: var(--card); border-color: #2a2a35; }
+[data-theme="dark"] .tc-bar     { background: #2a2a35; }
+[data-theme="dark"] .tc-event-time { background: var(--accent-100); color: var(--accent); }
+[data-theme="dark"] .tc-timer-cd { background: #1a2535; color: #60a5fa; }
+[data-theme="dark"] .tc-pill--pending { background: #2a2a35; color: var(--muted); }
+[data-theme="dark"] .stat       { background: #1e1e28; border-color: #2a2a35; }
+[data-theme="dark"] .bar        { background: #2a2a35; }
+[data-theme="dark"] .cal-grid button { color: var(--fg); }
+[data-theme="dark"] .progress-meta .panel { background: #1e1e28; }
+[data-theme="dark"] .subject-card { background: #1e1e28; border-color: #2a2a35; }
+[data-theme="dark"] .todo-add-form select,
+[data-theme="dark"] .todo-add-form input { background: #1e1e28; }
+
+/* Transición suave al cambiar tema */
+body, .panel, .timer-card, .today-card, .stat, .todo-item, nav, input, select {
+  transition: background-color .25s, border-color .25s, color .15s;
+}
+.dark-toggle {
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+[data-theme="dark"] .dark-toggle { border-color: #2a2a35; }
+
+/* ============================================================
+   TAREAS MEJORADAS (prioridad + fecha)
+   ============================================================ */
+.todo-add-form {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .todo-add-form { grid-template-columns: 1fr 1fr; }
+  .todo-add-form input[type="text"] { grid-column: 1 / -1; }
+  .todo-add-form button { grid-column: 1 / -1; }
+}
+.todo-add-form input, .todo-add-form select {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.todo-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  flex-wrap: wrap;
+}
+.todo-filter-btn {
+  padding: 5px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all .15s;
+}
+.todo-filter-btn.active, .todo-filter-btn:hover {
+  background: var(--accent-100);
+  color: var(--accent);
+  border-color: var(--accent-100);
+}
+[data-theme="dark"] .todo-filter-btn { border-color: #2a2a35; }
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  border-left: 4px solid #e5e7eb;
+}
+.todo-item.prio-alta   { border-left-color: #f43f5e; }
+.todo-item.prio-media  { border-left-color: #f59e0b; }
+.todo-item.prio-baja   { border-left-color: #34d399; }
+.todo-item.done        { opacity: .55; }
+.todo-item.done .todo-text { text-decoration: line-through; }
+.todo-item input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; accent-color: var(--accent); width:16px; height:16px; }
+
+.todo-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.todo-text {
+  font-size: 14px;
+  color: var(--fg);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.todo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.todo-prio-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.todo-prio-alta  { background: #ffe4e8; color: #be123c; }
+.todo-prio-media { background: #fef3c7; color: #b45309; }
+.todo-prio-baja  { background: #d1fae5; color: #065f46; }
+[data-theme="dark"] .todo-prio-alta  { background: #3b0a18; color: #fca5a5; }
+[data-theme="dark"] .todo-prio-media { background: #2d1f05; color: #fcd34d; }
+[data-theme="dark"] .todo-prio-baja  { background: #052c1a; color: #6ee7b7; }
+
+.todo-deadline {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.deadline-overdue { background: #ffe4e8; color: #be123c; }
+.deadline-today   { background: #fef3c7; color: #b45309; font-weight: 700; }
+.deadline-future  { background: #eff6ff; color: #1d4ed8; }
+[data-theme="dark"] .deadline-overdue { background: #3b0a18; color: #fca5a5; }
+[data-theme="dark"] .deadline-today   { background: #2d1f05; color: #fcd34d; }
+[data-theme="dark"] .deadline-future  { background: #0c1f38; color: #93c5fd; }
+
+.todo-del {
+  flex-shrink: 0;
+  font-size: 13px;
+  opacity: .45;
+  padding: 4px 7px;
+  margin-top: 1px;
+}
+.todo-del:hover { opacity: 1; color: var(--danger); }

@@ -10,6 +10,9 @@
   <div class="container">
     <header>
       <div class="brand"><div class="logo"></div><h1>Mi organización</h1></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button id="darkToggle" class="btn ghost dark-toggle" title="Modo oscuro" aria-label="Cambiar tema">🌙</button>
+      </div>
       <nav aria-label="Navegación por pestañas">
         <button class="tab-btn" data-tab="today" aria-selected="true">🏠 Hoy</button>
         <button class="tab-btn" data-tab="timers">Temporizadores</button>
@@ -140,10 +143,28 @@
     <!-- PESTAÑA 4: TAREAS -->
     <section id="tab-todo" class="tab">
       <div class="panel">
-        <h2 style="margin:0 0 10px">Do It</h2>
-        <div class="todo-input">
+        <h2 style="margin:0 0 14px">Do It</h2>
+        <div class="todo-add-form">
           <input id="todoText" type="text" placeholder="Escribe una tarea..." />
+          <select id="todoPriority" aria-label="Prioridad">
+            <option value="normal">Normal</option>
+            <option value="alta">🔴 Alta</option>
+            <option value="media">🟡 Media</option>
+            <option value="baja">🟢 Baja</option>
+          </select>
+          <input id="todoDeadline" type="date" title="Fecha límite (opcional)" />
           <button id="addTodo" class="btn">Añadir</button>
+        </div>
+        <div class="todo-filters">
+          <button class="todo-filter-btn active" data-filter="all">Todas</button>
+          <button class="todo-filter-btn" data-filter="pending">Pendientes</button>
+          <button class="todo-filter-btn" data-filter="done">Completadas</button>
+          <span class="spacer"></span>
+          <select id="todoSort" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px">
+            <option value="created">Orden creación</option>
+            <option value="deadline">Por fecha límite</option>
+            <option value="priority">Por prioridad</option>
+          </select>
         </div>
         <ul id="todoList" class="todo-list"></ul>
         <div style="display:flex;gap:8px;margin-top:10px">
