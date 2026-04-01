@@ -210,3 +210,289 @@ a{color:var(--accent-600);text-decoration:none}
   padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px
 }
 
+
+/* ============================================================
+   DASHBOARD HOY
+   ============================================================ */
+.today-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Hero */
+.today-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--accent) 0%, #c77dff 100%);
+  border-radius: 20px;
+  padding: 24px 28px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(157,78,221,.25);
+}
+.today-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.today-date {
+  font-size: 14px;
+  opacity: .85;
+  text-transform: capitalize;
+}
+.today-clock {
+  font-size: 42px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  opacity: .95;
+}
+
+/* Grid de tarjetas */
+.today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .today-grid { grid-template-columns: 1fr; }
+  .today-clock { font-size: 28px; }
+  .today-greeting { font-size: 18px; }
+}
+
+/* Tarjeta base */
+.today-card {
+  background: var(--card);
+  border: 1px solid #eee;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow .2s;
+}
+.today-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,.07);
+}
+
+/* Header de tarjeta */
+.tc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tc-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.tc-title {
+  font-weight: 600;
+  font-size: 15px;
+  flex: 1;
+  color: #1f1f1f;
+}
+.tc-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-100);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.tc-badge--ok {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* Barra de progreso hábitos */
+.tc-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tc-bar {
+  flex: 1;
+  height: 10px;
+  background: #f0f0f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.tc-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #c77dff);
+  border-radius: 999px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.tc-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Pills de hábitos */
+.tc-habit-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tc-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tc-pill--done {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.tc-pill--pending {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Lista de tareas */
+.tc-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tc-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
+}
+.tc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.tc-task-more {
+  font-size: 12px;
+  color: var(--muted);
+  list-style: none;
+  padding-left: 15px;
+}
+.tc-done-count {
+  font-size: 12px;
+  color: var(--ok);
+  font-weight: 500;
+}
+
+/* Eventos */
+.tc-event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tc-event-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.tc-event-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-100);
+  padding: 2px 7px;
+  border-radius: 6px;
+  min-width: 48px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tc-event-name {
+  color: #374151;
+  line-height: 1.3;
+}
+
+/* Temporizadores */
+.tc-timer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tc-timer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.tc-timer-name {
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tc-timer-cd {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0b61c3;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Pomodoro card */
+.tc-pom-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.tc-pom-mins {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tc-pom-mins span {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.tc-pom-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+.tc-pom-btn {
+  margin-top: 4px;
+  width: 100%;
+}
+
+/* Empty states */
+.tc-empty {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.tc-empty--ok {
+  color: var(--ok);
+  font-weight: 500;
+}

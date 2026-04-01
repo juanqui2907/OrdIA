@@ -4,16 +4,18 @@ import { initHabits } from './habits.js';
 import { initProgress } from './progress.js';
 import { initTodo } from './todo.js';
 import { initSubjects } from './subjects.js';
-import { initPomodoro } from './pomodoro.js'; // nuevo
+import { initPomodoro } from './pomodoro.js';
 import { initCalendar } from './calendar.js';
+import { initToday } from './today.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
+  initToday();
   initTimers();
   initHabits();
   initProgress();
   initTodo();
   initSubjects();
-  initPomodoro(); // nuevo
+  initPomodoro();
   initCalendar();
 });

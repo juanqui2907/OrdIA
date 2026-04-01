@@ -11,7 +11,8 @@
     <header>
       <div class="brand"><div class="logo"></div><h1>Mi organización</h1></div>
       <nav aria-label="Navegación por pestañas">
-        <button class="tab-btn" data-tab="timers" aria-selected="true">Temporizadores</button>
+        <button class="tab-btn" data-tab="today" aria-selected="true">🏠 Hoy</button>
+        <button class="tab-btn" data-tab="timers">Temporizadores</button>
         <button class="tab-btn" data-tab="habits">Hábitos</button>
         <button class="tab-btn" data-tab="progress">Progreso</button>
         <button class="tab-btn" data-tab="todo">Do It</button>
@@ -20,8 +21,13 @@
       </nav>
     </header>
 
+    <!-- PESTAÑA HOY (dashboard) -->
+    <section id="tab-today" class="tab active">
+      <div id="today-root"></div>
+    </section>
+
     <!-- PESTAÑA 1: TEMPORIZADORES -->
-    <section id="tab-timers" class="tab active">
+    <section id="tab-timers" class="tab">
       <div class="panel grid cols-2">
         <div>
           <h2 style="margin:0 0 8px">Agregar temporizador</h2>
