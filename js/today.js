@@ -3,7 +3,7 @@ import { store } from './store.js';
 const TIMER_KEY     = 'timers_v1';
 const HABITS_KEY    = 'habits_v2';
 const HABIT_CFG_KEY = 'habit_cfg_v2';
-const TODO_KEY      = 'todos_v2';
+const TODO_KEY      = 'todos_v1';
 const CAL_KEY       = 'calendar_events_v1';
 const POM_CFG_KEY   = 'pomodoro_cfg_v1';
 const POM_STATE_KEY = 'pomodoro_state_v1';

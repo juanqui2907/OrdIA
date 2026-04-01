@@ -8,7 +8,6 @@ import { initPomodoro } from './pomodoro.js';
 import { initCalendar } from './calendar.js';
 import { initToday } from './today.js';
 import { initDarkMode } from './darkmode.js';
-import { updateAllTodosInCalendar } from './todo-cal-bridge.js';
 import { store } from './store.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,7 +21,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initSubjects();
   initPomodoro();
   initCalendar();
-
-  // Sincronizar tareas con calendario una vez todo esté listo
-  updateAllTodosInCalendar(store.get('todos_v2', []));
 });

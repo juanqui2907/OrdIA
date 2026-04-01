@@ -1,7 +1,7 @@
 import { store } from './store.js';
-import { syncTodoToCalendar, removeTodoFromCalendar, updateAllTodosInCalendar } from './todo-cal-bridge.js';
 
-const TODO_KEY = 'todos_v2';
+// Migrar datos de v1 a v2 si existen
+const TODO_KEY = 'todos_v1'; // volver a v1 para no perder datos del usuario
 
 const PRIORITY_ORDER = { alta: 0, media: 1, normal: 2, baja: 3 };
 const PRIORITY_LABEL = { alta: '🔴 Alta', media: '🟡 Media', normal: 'Normal', baja: '🟢 Baja' };
@@ -36,7 +36,43 @@ export function initTodo() {
   const todoSort     = document.getElementById('todoSort');
   const filterBtns   = document.querySelectorAll('.todo-filter-btn');
 
-  function save() { store.set(TODO_KEY, todos); document.dispatchEvent(new CustomEvent("todo:changed")); }
+  function save() {
+    store.set(TODO_KEY, todos);
+    document.dispatchEvent(new CustomEvent('todo:changed'));
+  }
+
+  function syncAll() {
+    // Sincronizar con calendario y temporizadores
+    const CAL_KEY   = 'calendar_events_v1';
+    const TIMER_KEY = 'timers_v1';
+
+    let cal;
+    try { cal = JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch { cal = {}; }
+
+    let timers;
+    try { timers = JSON.parse(localStorage.getItem(TIMER_KEY) || '[]'); } catch { timers = []; }
+
+    // Limpiar entradas previas de Do It
+    for (const iso of Object.keys(cal)) {
+      cal[iso] = cal[iso].filter(e => !e.fromTodo);
+      if (!cal[iso].length) delete cal[iso];
+    }
+    timers = timers.filter(t => !t.todoId);
+
+    // Reinsertar tareas con deadline
+    for (const t of todos) {
+      if (!t.deadline) continue;
+      const iso = t.deadline;
+      if (!cal[iso]) cal[iso] = [];
+      cal[iso].push({ title: `✅ ${t.text}`, time: '', fromTodo: true, todoId: t.id, done: t.done });
+      timers.push({ id: t.id, todoId: t.id, title: `✅ ${t.text}`, when: `${t.deadline}T23:59` });
+    }
+
+    localStorage.setItem(CAL_KEY, JSON.stringify(cal));
+    localStorage.setItem(TIMER_KEY, JSON.stringify(timers));
+    document.dispatchEvent(new CustomEvent('calendar:refresh'));
+    document.dispatchEvent(new CustomEvent('timers:changed'));
+  }
 
   function getFiltered() {
     let list = [...todos];
@@ -86,21 +122,14 @@ export function initTodo() {
         </div>
         <button class="btn ghost todo-del" aria-label="Eliminar">✕</button>
       `;
-      const cb = li.querySelector('input[type=checkbox]');
-      cb.addEventListener('change', () => {
+      li.querySelector('input[type=checkbox]').addEventListener('change', (e) => {
         const idx = todos.findIndex(x => x.id === t.id);
-        if (idx !== -1) {
-          todos[idx].done = cb.checked;
-          save();
-          syncTodoToCalendar(todos[idx]); // actualizar en calendario
-        }
-        renderTodos();
+        if (idx !== -1) todos[idx].done = e.target.checked;
+        save(); syncAll(); renderTodos();
       });
       li.querySelector('.todo-del').addEventListener('click', () => {
-        removeTodoFromCalendar(t.id, t.deadline); // borrar del calendario
         todos = todos.filter(x => x.id !== t.id);
-        save();
-        renderTodos();
+        save(); syncAll(); renderTodos();
       });
       todoList.appendChild(li);
     });
@@ -109,17 +138,15 @@ export function initTodo() {
   addTodoBtn.addEventListener('click', () => {
     const text = todoText.value.trim();
     if (!text) return;
-    const newTodo = {
+    todos.push({
       id: crypto.randomUUID(),
       text,
       done: false,
       priority: todoPriority?.value || 'normal',
       deadline: todoDeadline?.value || null,
       createdAt: Date.now()
-    };
-    todos.push(newTodo);
-    save();
-    syncTodoToCalendar(newTodo); // añadir al calendario si tiene fecha
+    });
+    save(); syncAll();
     todoText.value = '';
     if (todoDeadline) todoDeadline.value = '';
     if (todoPriority) todoPriority.value = 'normal';
@@ -129,16 +156,13 @@ export function initTodo() {
   todoText.addEventListener('keydown', e => { if (e.key === 'Enter') addTodoBtn.click(); });
 
   clearDone.addEventListener('click', () => {
-    const done = todos.filter(t => t.done);
-    done.forEach(t => removeTodoFromCalendar(t.id, t.deadline));
     todos = todos.filter(t => !t.done);
-    save(); renderTodos();
+    save(); syncAll(); renderTodos();
   });
 
   clearAll.addEventListener('click', () => {
     if (!confirm('¿Borrar todas las tareas?')) return;
-    todos.forEach(t => removeTodoFromCalendar(t.id, t.deadline));
-    todos = []; save(); renderTodos();
+    todos = []; save(); syncAll(); renderTodos();
   });
 
   filterBtns.forEach(btn => {
@@ -152,5 +176,7 @@ export function initTodo() {
 
   todoSort?.addEventListener('change', () => { sortBy = todoSort.value; renderTodos(); });
 
+  // Sync inicial
+  syncAll();
   renderTodos();
 }
