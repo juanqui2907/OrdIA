@@ -127,13 +127,16 @@ export function initCalendar(){
       eventsEl.innerHTML = `<div class="cal-noevents">No hay eventos</div>`;
     } else {
       eventsEl.innerHTML = list.map((ev, idx) => `
-        <div class="cal-event">
+        <div class="cal-event ${ev.fromTodo ? 'cal-event--todo' : ''} ${ev.done ? 'cal-event--done' : ''}">
           <div class="cal-event-left">
             <div class="cal-event-time">${ev.time || ''}</div>
             <div class="cal-event-title">${escapeHtml(ev.title)}</div>
           </div>
           <div class="cal-event-actions">
-            <button class="btn ghost cal-del" data-idx="${idx}" data-iso="${state.selected}">Eliminar</button>
+            ${ev.fromTodo
+              ? `<span class="cal-todo-badge">Do It</span>`
+              : `<button class="btn ghost cal-del" data-idx="${idx}" data-iso="${state.selected}">Eliminar</button>`
+            }
           </div>
         </div>
       `).join('');
@@ -193,4 +196,10 @@ export function initCalendar(){
   // initial render: keep selected as today by default
   state.selected = state.selected || isoDate(new Date());
   render();
+
+  // Escuchar actualizaciones desde Do It
+  document.addEventListener('calendar:refresh', () => {
+    state.events = loadEvents();
+    render();
+  });
 }

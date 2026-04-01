@@ -1,4 +1,5 @@
 import { store } from './store.js';
+import { syncTodoToCalendar, removeTodoFromCalendar, updateAllTodosInCalendar } from './todo-cal-bridge.js';
 
 const TODO_KEY = 'todos_v2';
 
@@ -15,15 +16,18 @@ function fmtDeadline(iso) {
   const today = todayISO();
   const d = new Date(iso + 'T00:00:00');
   const label = d.toLocaleDateString('es', { day: 'numeric', month: 'short' });
-  if (iso < today)  return { label: `⚠️ ${label}`, cls: 'deadline-overdue' };
-  if (iso === today) return { label: `📌 Hoy`, cls: 'deadline-today' };
-  return { label: `📅 ${label}`, cls: 'deadline-future' };
+  if (iso < today)   return { label: `⚠️ ${label}`, cls: 'deadline-overdue' };
+  if (iso === today) return { label: `📌 Hoy`,       cls: 'deadline-today' };
+  return              { label: `📅 ${label}`,        cls: 'deadline-future' };
 }
 
 export function initTodo() {
   let todos  = store.get(TODO_KEY, []);
   let filter = 'all';
   let sortBy = 'created';
+
+  // Sincronizar estado inicial con calendario
+  updateAllTodosInCalendar(todos);
 
   const todoText     = document.getElementById('todoText');
   const todoPriority = document.getElementById('todoPriority');
@@ -34,6 +38,8 @@ export function initTodo() {
   const clearAll     = document.getElementById('clearAll');
   const todoSort     = document.getElementById('todoSort');
   const filterBtns   = document.querySelectorAll('.todo-filter-btn');
+
+  function save() { store.set(TODO_KEY, todos); }
 
   function getFiltered() {
     let list = [...todos];
@@ -58,7 +64,7 @@ export function initTodo() {
     if (!list.length) {
       const li = document.createElement('li');
       li.className = 'status';
-      li.textContent = filter === 'done' ? 'Sin tareas completadas.' :
+      li.textContent = filter === 'done'    ? 'Sin tareas completadas.' :
                        filter === 'pending' ? '¡Todo al día! Sin pendientes.' :
                        'No hay tareas. Añade la primera.';
       todoList.appendChild(li);
@@ -78,6 +84,7 @@ export function initTodo() {
               ? `<span class="todo-prio-tag todo-prio-${t.priority}">${PRIORITY_LABEL[t.priority]}</span>`
               : ''}
             ${dl ? `<span class="todo-deadline ${dl.cls}">${dl.label}</span>` : ''}
+            ${t.deadline ? `<span class="todo-cal-tag">📆 en calendario</span>` : ''}
           </div>
         </div>
         <button class="btn ghost todo-del" aria-label="Eliminar">✕</button>
@@ -85,13 +92,17 @@ export function initTodo() {
       const cb = li.querySelector('input[type=checkbox]');
       cb.addEventListener('change', () => {
         const idx = todos.findIndex(x => x.id === t.id);
-        if (idx !== -1) todos[idx].done = cb.checked;
-        store.set(TODO_KEY, todos);
+        if (idx !== -1) {
+          todos[idx].done = cb.checked;
+          save();
+          syncTodoToCalendar(todos[idx]); // actualizar en calendario
+        }
         renderTodos();
       });
       li.querySelector('.todo-del').addEventListener('click', () => {
+        removeTodoFromCalendar(t.id, t.deadline); // borrar del calendario
         todos = todos.filter(x => x.id !== t.id);
-        store.set(TODO_KEY, todos);
+        save();
         renderTodos();
       });
       todoList.appendChild(li);
@@ -101,15 +112,17 @@ export function initTodo() {
   addTodoBtn.addEventListener('click', () => {
     const text = todoText.value.trim();
     if (!text) return;
-    todos.push({
+    const newTodo = {
       id: crypto.randomUUID(),
       text,
       done: false,
       priority: todoPriority?.value || 'normal',
       deadline: todoDeadline?.value || null,
       createdAt: Date.now()
-    });
-    store.set(TODO_KEY, todos);
+    };
+    todos.push(newTodo);
+    save();
+    syncTodoToCalendar(newTodo); // añadir al calendario si tiene fecha
     todoText.value = '';
     if (todoDeadline) todoDeadline.value = '';
     if (todoPriority) todoPriority.value = 'normal';
@@ -119,12 +132,18 @@ export function initTodo() {
   todoText.addEventListener('keydown', e => { if (e.key === 'Enter') addTodoBtn.click(); });
 
   clearDone.addEventListener('click', () => {
-    todos = todos.filter(t => !t.done); store.set(TODO_KEY, todos); renderTodos();
+    const done = todos.filter(t => t.done);
+    done.forEach(t => removeTodoFromCalendar(t.id, t.deadline));
+    todos = todos.filter(t => !t.done);
+    save(); renderTodos();
   });
+
   clearAll.addEventListener('click', () => {
     if (!confirm('¿Borrar todas las tareas?')) return;
-    todos = []; store.set(TODO_KEY, todos); renderTodos();
+    todos.forEach(t => removeTodoFromCalendar(t.id, t.deadline));
+    todos = []; save(); renderTodos();
   });
+
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
@@ -133,6 +152,8 @@ export function initTodo() {
       renderTodos();
     });
   });
+
   todoSort?.addEventListener('change', () => { sortBy = todoSort.value; renderTodos(); });
+
   renderTodos();
 }

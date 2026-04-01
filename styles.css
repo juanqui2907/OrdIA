@@ -544,12 +544,19 @@ body, .panel, .timer-card, .today-card, .stat, .todo-item, nav, input, select {
   transition: background-color .25s, border-color .25s, color .15s;
 }
 .dark-toggle {
-  font-size: 18px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid #eee;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+  margin-left: 4px;
+  transition: border-color .2s, background .2s;
 }
-[data-theme="dark"] .dark-toggle { border-color: #2a2a35; }
+.dark-toggle:hover { background: var(--accent-100); border-color: var(--accent-100); }
+[data-theme="dark"] .dark-toggle { border-color: #2a2a35; color: var(--fg); }
+[data-theme="dark"] .dark-toggle:hover { background: var(--accent-100); }
 
 /* ============================================================
    TAREAS MEJORADAS (prioridad + fecha)
@@ -580,22 +587,22 @@ body, .panel, .timer-card, .today-card, .stat, .todo-item, nav, input, select {
   flex-wrap: wrap;
 }
 .todo-filter-btn {
-  padding: 5px 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: transparent;
   cursor: pointer;
-  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #374151;
   font-weight: 500;
-  color: var(--muted);
-  transition: all .15s;
+  font-size: 14px;
+  transition: background .15s, color .15s;
 }
-.todo-filter-btn.active, .todo-filter-btn:hover {
+.todo-filter-btn.active {
   background: var(--accent-100);
   color: var(--accent);
-  border-color: var(--accent-100);
 }
-[data-theme="dark"] .todo-filter-btn { border-color: #2a2a35; }
+[data-theme="dark"] .todo-filter-btn { color: var(--muted); }
+[data-theme="dark"] .todo-filter-btn.active { background: var(--accent-100); color: var(--accent); }
 
 .todo-item {
   display: flex;
@@ -667,3 +674,47 @@ body, .panel, .timer-card, .today-card, .stat, .todo-item, nav, input, select {
   margin-top: 1px;
 }
 .todo-del:hover { opacity: 1; color: var(--danger); }
+
+/* Eventos de tareas en calendario */
+.cal-event--todo {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-100);
+}
+.cal-event--todo.cal-event--done {
+  opacity: .55;
+}
+.cal-todo-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--accent-100);
+  color: var(--accent);
+}
+[data-theme="dark"] .cal-event--todo { background: var(--accent-100); }
+
+/* Tag "en calendario" en tareas */
+.todo-cal-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+[data-theme="dark"] .todo-cal-tag { background: #0c1f38; color: #93c5fd; }
+
+/* Filtros do it - mismo wrap que nav */
+.todo-filters {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 0;
+  flex-wrap: wrap;
+  border: 1px solid #eee;
+  padding: 4px;
+  border-radius: 12px;
+  background: #fff;
+  width: fit-content;
+}
+[data-theme="dark"] .todo-filters { background: #18181f; border-color: #2a2a35; }
