@@ -26,9 +26,6 @@ export function initTodo() {
   let filter = 'all';
   let sortBy = 'created';
 
-  // Sincronizar estado inicial con calendario
-  updateAllTodosInCalendar(todos);
-
   const todoText     = document.getElementById('todoText');
   const todoPriority = document.getElementById('todoPriority');
   const todoDeadline = document.getElementById('todoDeadline');

@@ -197,9 +197,14 @@ export function initCalendar(){
   state.selected = state.selected || isoDate(new Date());
   render();
 
-  // Escuchar actualizaciones desde Do It
-  document.addEventListener('calendar:refresh', () => {
+  // Recargar eventos desde localStorage cada vez que se active la pestaña
+  // o cuando Do It dispare un cambio
+  function reloadAndRender() {
     state.events = loadEvents();
     render();
+  }
+  document.addEventListener('calendar:refresh', reloadAndRender);
+  document.addEventListener('tab:changed', (e) => {
+    if (e.detail === 'calendar') reloadAndRender();
   });
 }
