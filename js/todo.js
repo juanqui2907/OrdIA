@@ -36,7 +36,7 @@ export function initTodo() {
   const todoSort     = document.getElementById('todoSort');
   const filterBtns   = document.querySelectorAll('.todo-filter-btn');
 
-  function save() { store.set(TODO_KEY, todos); }
+  function save() { store.set(TODO_KEY, todos); document.dispatchEvent(new CustomEvent("todo:changed")); }
 
   function getFiltered() {
     let list = [...todos];

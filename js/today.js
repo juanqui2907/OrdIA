@@ -1,13 +1,12 @@
 import { store } from './store.js';
 
-// Claves de otros módulos (deben coincidir exactamente)
-const TIMER_KEY    = 'timers_v1';
-const HABITS_KEY   = 'habits_v2';
-const HABIT_CFG_KEY= 'habit_cfg_v2';
-const TODO_KEY     = 'todos_v1';
-const CAL_KEY      = 'calendar_events_v1';
-const POM_CFG_KEY  = 'pomodoro_cfg_v1';
-const POM_STATE_KEY= 'pomodoro_state_v1';
+const TIMER_KEY     = 'timers_v1';
+const HABITS_KEY    = 'habits_v2';
+const HABIT_CFG_KEY = 'habit_cfg_v2';
+const TODO_KEY      = 'todos_v2';
+const CAL_KEY       = 'calendar_events_v1';
+const POM_CFG_KEY   = 'pomodoro_cfg_v1';
+const POM_STATE_KEY = 'pomodoro_state_v1';
 
 function todayISO() {
   const d = new Date();
@@ -16,9 +15,6 @@ function todayISO() {
 function todayYM() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-function todayDay() {
-  return new Date().getDate();
 }
 function greeting() {
   const h = new Date().getHours();
@@ -41,54 +37,44 @@ export function initToday() {
   const section = document.getElementById('tab-today');
   if (!section) return;
 
+  // Lee todo directo de localStorage cada vez — sin depender de estado en memoria
   function render() {
-    const iso   = todayISO();
-    const ym    = todayYM();
-    const day   = todayDay();
-    const now   = new Date();
+    const iso = todayISO();
+    const ym  = todayYM();
+    const day = new Date().getDate();
+    const now = new Date();
 
-    // ── datos ──────────────────────────────────────────────
     const timers  = store.get(TIMER_KEY, []);
     const cfg     = store.get(HABIT_CFG_KEY, { habits: [] });
     const habData = store.get(HABITS_KEY, {});
     const todos   = store.get(TODO_KEY, []);
     let calRaw;
     try { calRaw = JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch { calRaw = {}; }
-    const pomCfg  = store.get(POM_CFG_KEY, { workMin: 25 });
-    const pomSt   = store.get(POM_STATE_KEY, { mode: 'work', running: false });
+    const pomCfg = store.get(POM_CFG_KEY, { workMin: 25 });
+    const pomSt  = store.get(POM_STATE_KEY, { mode: 'work', running: false });
 
-    // ── hábitos de hoy ─────────────────────────────────────
     const habitsDayData = habData[ym]?.[day] || {};
     const totalHabits   = cfg.habits.length;
     const doneHabits    = cfg.habits.filter(h => habitsDayData[h] === 1).length;
     const habitPct      = totalHabits ? Math.round(100 * doneHabits / totalHabits) : 0;
 
-    // ── tareas ─────────────────────────────────────────────
     const pendingTodos = todos.filter(t => !t.done);
     const doneTodos    = todos.filter(t =>  t.done);
 
-    // ── próximos temporizadores (top 3) ────────────────────
     const upcomingTimers = timers
       .filter(t => new Date(t.when) > now)
       .sort((a, b) => new Date(a.when) - new Date(b.when))
       .slice(0, 3);
 
-    // ── eventos de hoy (calendario) ────────────────────────
-    const todayEvents = (calRaw[iso] || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    const todayEvents = (calRaw[iso] || [])
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
-    // ── Pomodoro ────────────────────────────────────────────
     const pomLabel = pomSt.running ? '🍅 En sesión' : (pomSt.mode === 'work' ? '🍅 Listo' : '☕ Descanso');
-    const pomMins  = pomCfg.workMin || 25;
+    const timeStr  = now.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+    const dateStr  = now.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    // ── hora actual animada ────────────────────────────────
-    const timeStr = now.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = now.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
-
-    // ── render ─────────────────────────────────────────────
     section.innerHTML = `
       <div class="today-wrap">
-
-        <!-- ENCABEZADO -->
         <div class="today-hero">
           <div>
             <div class="today-greeting">${greeting()}</div>
@@ -97,7 +83,6 @@ export function initToday() {
           <div class="today-clock" id="todayClock">${timeStr}</div>
         </div>
 
-        <!-- GRID DE TARJETAS -->
         <div class="today-grid">
 
           <!-- HÁBITOS -->
@@ -112,7 +97,7 @@ export function initToday() {
               <span class="tc-pct">${habitPct}%</span>
             </div>
             ${totalHabits === 0
-              ? `<p class="tc-empty">Aún no tienes hábitos. Ve a la pestaña <strong>Hábitos</strong>.</p>`
+              ? `<p class="tc-empty">Aún no tienes hábitos. Ve a <strong>Hábitos</strong>.</p>`
               : `<div class="tc-habit-pills">
                   ${cfg.habits.map(h => {
                     const done = habitsDayData[h] === 1;
@@ -132,14 +117,18 @@ export function initToday() {
             ${pendingTodos.length === 0
               ? `<p class="tc-empty tc-empty--ok">¡Todo al día! Sin pendientes 🎉</p>`
               : `<ul class="tc-task-list">
-                  ${pendingTodos.slice(0, 5).map(t => `<li class="tc-task-item"><span class="tc-dot"></span>${t.text}</li>`).join('')}
+                  ${pendingTodos.slice(0, 5).map(t => `
+                    <li class="tc-task-item">
+                      <span class="tc-dot${t.priority === 'alta' ? ' tc-dot--alta' : t.priority === 'media' ? ' tc-dot--media' : ''}"></span>
+                      ${t.text}
+                    </li>`).join('')}
                   ${pendingTodos.length > 5 ? `<li class="tc-task-more">+${pendingTodos.length - 5} más…</li>` : ''}
                 </ul>`
             }
             ${doneTodos.length > 0 ? `<div class="tc-done-count">✓ ${doneTodos.length} completada${doneTodos.length > 1 ? 's' : ''}</div>` : ''}
           </div>
 
-          <!-- EVENTOS DEL DÍA -->
+          <!-- AGENDA HOY -->
           <div class="today-card today-card--events">
             <div class="tc-header">
               <span class="tc-icon">📅</span>
@@ -147,7 +136,7 @@ export function initToday() {
               <span class="tc-badge">${todayEvents.length} evento${todayEvents.length !== 1 ? 's' : ''}</span>
             </div>
             ${todayEvents.length === 0
-              ? `<p class="tc-empty">Sin eventos hoy. Agrega en <strong>Calendario</strong>.</p>`
+              ? `<p class="tc-empty">Sin eventos hoy.</p>`
               : `<ul class="tc-event-list">
                   ${todayEvents.map(ev => `
                     <li class="tc-event-item">
@@ -184,7 +173,7 @@ export function initToday() {
               <span class="tc-badge ${pomSt.running ? 'tc-badge--ok' : ''}">${pomLabel}</span>
             </div>
             <div class="tc-pom-body">
-              <div class="tc-pom-mins">${pomMins}<span>min</span></div>
+              <div class="tc-pom-mins">${pomCfg.workMin || 25}<span>min</span></div>
               <p class="tc-pom-hint">Sesión de trabajo configurada</p>
               <button class="tc-pom-btn btn" onclick="document.querySelector('[data-tab=pomodoro]').click()">
                 ${pomSt.running ? 'Ver sesión activa' : 'Iniciar Pomodoro'}
@@ -192,18 +181,16 @@ export function initToday() {
             </div>
           </div>
 
-        </div><!-- /today-grid -->
+        </div>
       </div>
     `;
 
-    // reloj en vivo
     startClock();
-    // actualizar countdowns cada segundo
     startCountdowns();
   }
 
-  let clockInterval  = null;
-  let cdInterval     = null;
+  let clockInterval = null;
+  let cdInterval    = null;
 
   function startClock() {
     clearInterval(clockInterval);
@@ -222,14 +209,17 @@ export function initToday() {
     }, 10000);
   }
 
-  // re-render cuando cambian datos de otros módulos
-  document.addEventListener('habits:changed', render);
+  // Escuchar TODOS los eventos que cambian datos relevantes
+  document.addEventListener('habits:data',     render);  // checkbox de hábito
+  document.addEventListener('habits:changed',  render);  // añadir/borrar hábito
+  document.addEventListener('calendar:refresh', render); // cambios de calendario
+  document.addEventListener('todo:changed',    render);  // cambios de tareas
+  document.addEventListener('timers:changed',  render);  // cambios de temporizadores
 
-  // render inicial
-  render();
-
-  // refrescar al volver a la pestaña
+  // Re-render al volver a la pestaña
   document.addEventListener('tab:changed', (e) => {
     if (e.detail === 'today') render();
   });
+
+  render();
 }

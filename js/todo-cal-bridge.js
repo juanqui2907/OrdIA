@@ -1,73 +1,87 @@
-// Puente entre Do It y Calendario
-// Los eventos de tareas se guardan en el mismo store del calendario
-// con la clave especial: { title, time:'', fromTodo: true, todoId }
-
-const CAL_KEY = 'calendar_events_v1';
+// Puente entre Do It, Calendario y Temporizadores
+const CAL_KEY   = 'calendar_events_v1';
+const TIMER_KEY = 'timers_v1';
 
 function loadCal() {
   try { return JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch { return {}; }
 }
-function saveCal(data) {
-  localStorage.setItem(CAL_KEY, JSON.stringify(data));
+function saveCal(data) { localStorage.setItem(CAL_KEY, JSON.stringify(data)); }
+
+function loadTimers() {
+  try { return JSON.parse(localStorage.getItem(TIMER_KEY) || '[]'); } catch { return []; }
+}
+function saveTimers(data) { localStorage.setItem(TIMER_KEY, JSON.stringify(data)); }
+
+function notify(events) {
+  for (const ev of events) document.dispatchEvent(new CustomEvent(ev));
 }
 
+// ── Calendario ──────────────────────────────────────────────
+function upsertCalEvent(cal, iso, todo) {
+  if (!cal[iso]) cal[iso] = [];
+  const i = cal[iso].findIndex(e => e.todoId === todo.id);
+  const entry = { title: `✅ ${todo.text}`, time: '', fromTodo: true, todoId: todo.id, done: todo.done };
+  if (i >= 0) cal[iso][i] = entry; else cal[iso].push(entry);
+}
+
+// ── Temporizadores ───────────────────────────────────────────
+function isoToDatetimeLocal(iso) {
+  // deadline es YYYY-MM-DD → ponerlo a las 23:59 de ese día
+  return `${iso}T23:59`;
+}
+function upsertTimer(timers, todo) {
+  const i = timers.findIndex(t => t.todoId === todo.id);
+  const entry = { id: todo.id, todoId: todo.id, title: `✅ ${todo.text}`, when: isoToDatetimeLocal(todo.deadline) };
+  if (i >= 0) timers[i] = entry; else timers.push(entry);
+}
+
+// ── Sync individual ──────────────────────────────────────────
 export function syncTodoToCalendar(todo) {
-  // Añade o actualiza el evento del calendario para esta tarea
   if (!todo.deadline) return;
   const cal = loadCal();
-  const iso = todo.deadline;
-  if (!cal[iso]) cal[iso] = [];
-  // evitar duplicados
-  const exists = cal[iso].findIndex(e => e.todoId === todo.id);
-  const entry = {
-    title: `✅ ${todo.text}`,
-    time: '',
-    fromTodo: true,
-    todoId: todo.id,
-    done: todo.done
-  };
-  if (exists >= 0) {
-    cal[iso][exists] = entry;
-  } else {
-    cal[iso].push(entry);
-  }
+  upsertCalEvent(cal, todo.deadline, todo);
   saveCal(cal);
-  // avisar al calendario para que se re-renderice si está activo
-  document.dispatchEvent(new CustomEvent('calendar:refresh'));
+
+  const timers = loadTimers();
+  upsertTimer(timers, todo);
+  saveTimers(timers);
+
+  notify(['calendar:refresh', 'timers:changed']);
 }
 
 export function removeTodoFromCalendar(todoId, deadline) {
   if (!deadline) return;
+
   const cal = loadCal();
-  const iso = deadline;
-  if (!cal[iso]) return;
-  cal[iso] = cal[iso].filter(e => e.todoId !== todoId);
-  if (cal[iso].length === 0) delete cal[iso];
-  saveCal(cal);
-  document.dispatchEvent(new CustomEvent('calendar:refresh'));
+  if (cal[deadline]) {
+    cal[deadline] = cal[deadline].filter(e => e.todoId !== todoId);
+    if (!cal[deadline].length) delete cal[deadline];
+    saveCal(cal);
+  }
+
+  const timers = loadTimers().filter(t => t.todoId !== todoId);
+  saveTimers(timers);
+
+  notify(['calendar:refresh', 'timers:changed']);
 }
 
+// ── Sync total al iniciar ────────────────────────────────────
 export function updateAllTodosInCalendar(todos) {
-  // Limpia todos los eventos fromTodo y los recrea desde cero
   const cal = loadCal();
-  // borrar todos los fromTodo existentes
+  // limpiar todos los fromTodo
   for (const iso of Object.keys(cal)) {
     cal[iso] = cal[iso].filter(e => !e.fromTodo);
-    if (cal[iso].length === 0) delete cal[iso];
+    if (!cal[iso].length) delete cal[iso];
   }
-  // reinsertar los que tienen deadline
+  // limpiar timers de tareas
+  const timers = loadTimers().filter(t => !t.todoId);
+
   for (const t of todos) {
     if (!t.deadline) continue;
-    const iso = t.deadline;
-    if (!cal[iso]) cal[iso] = [];
-    cal[iso].push({
-      title: `✅ ${t.text}`,
-      time: '',
-      fromTodo: true,
-      todoId: t.id,
-      done: t.done
-    });
+    upsertCalEvent(cal, t.deadline, t);
+    upsertTimer(timers, t);
   }
   saveCal(cal);
-  document.dispatchEvent(new CustomEvent('calendar:refresh'));
+  saveTimers(timers);
+  notify(['calendar:refresh', 'timers:changed']);
 }

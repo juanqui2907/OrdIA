@@ -34,6 +34,7 @@ export function initTimers(){
     if(!title || !when) return;
     timers.push({ id:crypto.randomUUID(), title, when });
     store.set(TIMER_KEY, timers);
+    document.dispatchEvent(new CustomEvent('timers:changed'));
     timerTitle.value=''; timerWhen.value='';
     renderTimers();
   });
@@ -48,8 +49,8 @@ export function initTimers(){
           <div class="timer-date">${fmtDate(t.when)}</div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn ghost" data-id="${t.id}" aria-label="Duplicar">Duplicar</button>
-          <button class="btn danger" data-del="${t.id}" aria-label="Eliminar">Eliminar</button>
+          ${t.todoId ? '<span class="pill" style="font-size:11px">Do It</span>' : `<button class="btn ghost" data-id="${t.id}" aria-label="Duplicar">Duplicar</button>`}
+          ${t.todoId ? '' : `<button class="btn danger" data-del="${t.id}" aria-label="Eliminar">Eliminar</button>`}
         </div>
       </div>
       <div class="countdown">
@@ -81,11 +82,11 @@ export function initTimers(){
     card.addEventListener('remove', ()=>clearInterval(it));
     card.querySelector('[data-id]')?.addEventListener('click',()=>{
       timers.push({ id:crypto.randomUUID(), title:t.title+' (copia)', when:t.when });
-      store.set(TIMER_KEY,timers); renderTimers();
+      store.set(TIMER_KEY,timers); document.dispatchEvent(new CustomEvent('timers:changed')); renderTimers();
     });
     card.querySelector('[data-del]')?.addEventListener('click',()=>{
       timers = timers.filter(x=>x.id!==t.id);
-      store.set(TIMER_KEY,timers); renderTimers();
+      store.set(TIMER_KEY,timers); document.dispatchEvent(new CustomEvent('timers:changed')); renderTimers();
     });
     return card;
   }
@@ -96,4 +97,10 @@ export function initTimers(){
   }
 
   renderTimers();
+
+  // Re-renderizar cuando el puente Do It añade/quita temporizadores
+  document.addEventListener('timers:changed', () => {
+    timers = store.get(TIMER_KEY, []);
+    renderTimers();
+  });
 }
