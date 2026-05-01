@@ -195,13 +195,22 @@
     <!-- NUEVA PESTAÑA: POMODORO -->
     <section id="tab-pomodoro" class="tab">
       <div class="panel">
-        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:4px">
           <h2 style="margin:0">Pomodoro</h2>
-          <div style="display:flex;gap:10px;align-items:center">
-            <label style="display:flex;gap:6px;align-items:center">
-              <input id="autoNext" type="checkbox"> Autoiniciar siguiente fase
-            </label>
-          </div>
+          <label class="pom-toggle-wrap">
+            <span class="pom-toggle-label">Autoiniciar</span>
+            <span class="pom-toggle">
+              <input id="autoNext" type="checkbox">
+              <span class="pom-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="pom-explainer">
+          <span class="pom-exp-item">🍅 <strong>Trabajo</strong> — sesión de concentración</span>
+          <span class="pom-exp-sep">→</span>
+          <span class="pom-exp-item">☕ <strong>Descanso corto</strong> — pausa breve</span>
+          <span class="pom-exp-sep">→</span>
+          <span class="pom-exp-item">🛋️ <strong>Descanso largo</strong> — cada 4 pomodoros</span>
         </div>
 
         <div class="pom-row">
@@ -228,7 +237,7 @@
           </div>
 
           <div class="pom-right">
-            <h3 style="margin:0 0 6px">Duraciones</h3>
+            <h3 class="pom-cfg-title">⚙️ Configuración</h3>
             <div class="pom-grid">
               <label>Trabajo
                 <input id="durWork"  type="number" min="1" step="1" value="25"> min

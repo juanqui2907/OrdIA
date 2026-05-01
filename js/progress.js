@@ -77,7 +77,18 @@ export function initProgress(){
     drawProgress();
   }
 
+  function resizeCanvas(){
+    const container = chart.parentElement;
+    const w = Math.min(520, container.clientWidth - 8);
+    const h = Math.round(w * (300/520));
+    if (chart.width !== w || chart.height !== h){
+      chart.width  = w;
+      chart.height = h;
+    }
+  }
+
   function drawProgress(){
+    resizeCanvas();
     const { cfg, data } = getHabitListFromStore();
     const ym = monthPicker?.value || cfg.month;
 
@@ -153,6 +164,10 @@ export function initProgress(){
   document.addEventListener('habits:changed', fillOptions);
   document.addEventListener('habits:month',   ()=>{ fillOptions(); });
   document.addEventListener('habits:data',    drawProgress);
+  document.addEventListener('tab:changed', e => {
+    if (e.detail === 'progress') { resizeCanvas(); drawProgress(); }
+  });
+  window.addEventListener('resize', () => { if (document.getElementById('tab-progress').classList.contains('active')) drawProgress(); });
 
   // Refresca al activar la pestaña Progreso (por si abriste directo allí)
   const progressBtn = document.querySelector('.tab-btn[data-tab="progress"]');
