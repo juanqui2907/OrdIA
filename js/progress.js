@@ -79,12 +79,10 @@ export function initProgress(){
 
   function resizeCanvas(){
     const container = chart.parentElement;
-    const w = Math.min(520, container.clientWidth - 8);
+    const w = Math.max(100, Math.min(520, container.clientWidth - 8));
     const h = Math.round(w * (300/520));
-    if (chart.width !== w || chart.height !== h){
-      chart.width  = w;
-      chart.height = h;
-    }
+    chart.width  = w;
+    chart.height = h;
   }
 
   function drawProgress(){
@@ -165,13 +163,17 @@ export function initProgress(){
   document.addEventListener('habits:month',   ()=>{ fillOptions(); });
   document.addEventListener('habits:data',    drawProgress);
   document.addEventListener('tab:changed', e => {
-    if (e.detail === 'progress') { resizeCanvas(); drawProgress(); }
+    if (e.detail === 'progress') {
+      // rAF asegura que el tab ya es visible antes de medir
+      requestAnimationFrame(() => fillOptions());
+    }
   });
-  window.addEventListener('resize', () => { if (document.getElementById('tab-progress').classList.contains('active')) drawProgress(); });
+  window.addEventListener('resize', () => {
+    if (document.getElementById('tab-progress').classList.contains('active')) {
+      requestAnimationFrame(() => drawProgress());
+    }
+  });
 
-  // Refresca al activar la pestaña Progreso (por si abriste directo allí)
-  const progressBtn = document.querySelector('.tab-btn[data-tab="progress"]');
-  progressBtn?.addEventListener('click', fillOptions);
 
   // Init
   fillOptions();
