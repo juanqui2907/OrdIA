@@ -718,3 +718,161 @@ body, .panel, .timer-card, .today-card, .stat, .todo-item, nav, input, select {
   width: fit-content;
 }
 [data-theme="dark"] .todo-filters { background: #18181f; border-color: #2a2a35; }
+
+/* ============================================================
+   BOTTOM NAV — solo visible en móvil
+   ============================================================ */
+.bottom-nav { display: none; }
+
+/* ============================================================
+   RESPONSIVE MÓVIL
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Contenedor */
+  .container {
+    padding: 12px 12px 72px; /* espacio para bottom nav */
+  }
+
+  /* Header compacto */
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .brand { width: 100%; justify-content: space-between; }
+  h1 { font-size: 17px; }
+
+  /* Ocultar nav de escritorio */
+  header > nav { display: none !important; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 62px;
+    background: var(--bg);
+    border-top: 1px solid #e5e7eb;
+    z-index: 200;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 2px;
+  }
+  .bottom-nav::-webkit-scrollbar { display: none; }
+
+  .bnav-btn {
+    flex: 1;
+    min-width: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    border-radius: 0;
+    padding: 6px 4px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color .15s;
+    white-space: nowrap;
+  }
+  .bnav-btn[aria-selected="true"] {
+    color: var(--accent);
+  }
+  .bnav-btn svg {
+    width: 20px; height: 20px;
+    stroke-width: 1.8;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .bottom-nav {
+    border-color: #2a2a35;
+    background: var(--bg);
+  }
+
+  /* ── Panels ── */
+  .panel { padding: 12px; border-radius: 12px; }
+
+  /* ── Timer form: stack vertical ── */
+  .timer-form {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Countdown: fuente adaptable ── */
+  .dd, .hh, .mm, .ss, .sep {
+    font-size: clamp(28px, 9vw, 52px);
+  }
+  .countdown { gap: 6px; }
+
+  /* ── Timers grid ya tiene 1 col, pero ajustamos card ── */
+  .timer-card { min-height: auto; }
+
+  /* ── Hábitos: tabla compacta ── */
+  .habit-table th, .habit-table td { padding: 5px 4px; font-size: 12px; }
+  .day-col { width: 50px; }
+  .habit-tools { gap: 6px; }
+  .habit-tools .btn { padding: 8px 10px; font-size: 13px; }
+
+  /* ── Calendario: apila grid + aside ── */
+  .cal-main { flex-direction: column; gap: 10px; }
+  .cal-grid  { min-width: 0; width: 100%; }
+  .cal-side  { width: 100%; }
+  .cal-day   { min-height: 44px; padding: 5px; }
+  .cal-day-num { font-size: 13px; }
+
+  /* ── Pomodoro: canvas adaptable ── */
+  .pom-timer {
+    width: min(260px, 80vw);
+    height: min(260px, 80vw);
+  }
+  #pomCanvas {
+    width: min(260px, 80vw) !important;
+    height: min(260px, 80vw) !important;
+  }
+  .pom-time { font-size: clamp(36px, 10vw, 52px); }
+  .pom-right .pom-grid { grid-template-columns: 1fr; }
+  .mode-switch { justify-content: center; }
+
+  /* ── Progreso: selector full width ── */
+  #progressHabitSel { font-size: 14px; }
+
+  /* ── Todo form ── */
+  .todo-add-form { grid-template-columns: 1fr; }
+  .todo-add-form input[type="text"],
+  .todo-add-form select,
+  .todo-add-form input[type="date"],
+  .todo-add-form button { grid-column: 1 / -1; }
+
+  /* ── Materias: siempre 1 col en móvil ── */
+  .subjects-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Ajustes mínimos de inputs para dedos ── */
+  input, select, .btn { min-height: 42px; }
+  .btn { padding: 10px 14px; font-size: 14px; }
+
+  /* ── Dashboard Hoy ── */
+  .today-hero { padding: 16px 18px; border-radius: 14px; }
+  .today-clock { font-size: 32px; }
+  .today-greeting { font-size: 17px; }
+  .today-grid { gap: 10px; }
+  .today-card { padding: 14px; border-radius: 14px; }
+
+  /* ── Nuevo: campo de materia full width ── */
+  #newSubjectName { min-width: 0; width: 100%; }
+  #tab-todo .panel:last-child > div:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Extra pequeño */
+@media (max-width: 380px) {
+  .bnav-btn { min-width: 44px; font-size: 9px; }
+  .bnav-btn svg { width: 18px; height: 18px; }
+}
