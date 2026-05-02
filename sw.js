@@ -1,4 +1,4 @@
-const CACHE = 'ordia-v1';
+const CACHE = 'ordia-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const ASSETS = [
   './js/today.js',
   './js/store.js',
   './js/todo-cal-bridge.js',
+  './js/alert.js',
 ];
 
 // Instalación: guarda todo en caché

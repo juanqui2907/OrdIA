@@ -1,3 +1,4 @@
+import { playSound, vibrate, requestNotificationPermission, sendNotification } from './alert.js';
 import { store } from './store.js';
 
 // claves de almacenamiento
@@ -32,8 +33,6 @@ function loadState(){
 }
 function saveState(st){ store.set(STATE_KEY, st); }
 
-// beep corto en base64
-const BEEP_WAV = "data:audio/wav;base64,UklGRoQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YRAAAAAA//8AAP//AAD//wAA//8AAP//AAD//wAA";
 
 export function initPomodoro(){
   // elementos
@@ -112,26 +111,23 @@ export function initPomodoro(){
     return mode==='work' ? '#9d4edd' : mode==='short' ? '#16a34a' : '#0ea5e9';
   }
 
-  function ensureNotificationPermission(){
-    if (!cfg.notifyOn || !('Notification' in window)) return;
-    if (Notification.permission === 'default'){
-      Notification.requestPermission();
-    }
+  async function ensureNotificationPermission(){
+    if (!cfg.notifyOn) return;
+    await requestNotificationPermission();
   }
 
   function notifyNext(nextMode){
-    if (!cfg.notifyOn || !('Notification' in window)) return;
-    if (Notification.permission !== 'granted') return;
-    const title = nextMode==='work' ? 'Hora de trabajar' : nextMode==='short' ? 'Descanso corto' : 'Descanso largo';
-    new Notification('Pomodoro', { body: title });
+    if (!cfg.notifyOn) return;
+    const titles = { work: '🍅 ¡A trabajar!', short: '☕ Descanso corto', long: '🛋️ Descanso largo' };
+    const bodies = { work: 'Arranca la siguiente sesión de concentración.', short: 'Tómate unos minutos.', long: 'Buen trabajo, mereces un descanso largo.' };
+    sendNotification('OrdIA — Pomodoro', `${titles[nextMode]} ${bodies[nextMode]}`);
   }
 
-  const audio = new Audio(BEEP_WAV);
 
-  function beep(){
+  function beep(type='work'){
     if (!cfg.soundOn) return;
-    audio.currentTime = 0;
-    audio.play().catch(()=>{});
+    playSound(type);
+    vibrate(type);
   }
 
   function setMode(mode){
@@ -167,8 +163,8 @@ export function initPomodoro(){
   function onPhaseEnd(){
     // si terminó trabajo, sube el ciclo
     if (st.mode === 'work') st.cycle += 1;
-    beep();
     const next = nextModeAfter(st.mode);
+    beep(next);
     notifyNext(next);
     if (cfg.autoNext){
       startPhase(next);

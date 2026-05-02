@@ -1,3 +1,4 @@
+import { playSound, vibrate, sendNotification } from './alert.js';
 import { store } from './store.js';
 
 const TIMER_KEY = 'timers_v1';
@@ -26,6 +27,7 @@ export function initTimers(){
   const timerWhen = document.getElementById('timerWhen');
 
   let timers = store.get(TIMER_KEY, []); // {id,title,when}
+  const fired = new Set(); // IDs de timers que ya dispararon la alarma
 
   timerForm.addEventListener('submit', e=>{
     e.preventDefault();
@@ -76,6 +78,18 @@ export function initTimers(){
       pill.textContent = p.past ? 'finalizado' : 'en curso';
       pill.style.background = p.past ? '#fee2e2' : 'var(--accent-100)';
       pill.style.color = p.past ? '#991b1b' : 'var(--accent)';
+
+      // Alarma al llegar a cero (una sola vez por timer)
+      if (p.past && !fired.has(t.id)) {
+        fired.add(t.id);
+        playSound('timer');
+        vibrate('timer');
+        sendNotification(`⏰ ${t.title}`, '¡El tiempo se acabó!');
+        // Flash visual en la card
+        card.style.transition = 'box-shadow 0.3s';
+        card.style.boxShadow = '0 0 0 3px #ef4444';
+        setTimeout(() => { card.style.boxShadow = ''; }, 2000);
+      }
     }
     tick();
     const it = setInterval(tick,1000);
